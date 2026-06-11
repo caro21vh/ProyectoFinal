@@ -7,9 +7,11 @@
  *
  * Componentes:
  *  - Higrómetro FC-28 → Pin GPIO34 (analógico)
+ *  - LED NeoPixel     → Pin GPIO4
  * =========================================
  */
 
+#include <Adafruit_NeoPixel.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ArduinoJson.h>
@@ -18,7 +20,10 @@ const char* SSID     = "TU_RED";
 const char* PASSWORD = "TU_PASSWORD";
 
 #define SOIL_PIN  34
+#define NEOPIXEL_PIN   4
+#define NEOPIXEL_COUNT 10
 
+Adafruit_NeoPixel strip(NEOPIXEL_COUNT, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 WebServer server(80);
 
 int soilRaw     = 0;
@@ -26,6 +31,10 @@ int soilPercent = 0;
 
 void setup() {
   Serial.begin(115200);
+
+  strip.begin();
+  strip.setBrightness(80);
+  strip.show();
 
   WiFi.begin(SSID, PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
@@ -42,6 +51,7 @@ void setup() {
 void loop() {
   server.handleClient();
   readSoil();
+  updateNeoPixel();
   delay(200);
 }
 
@@ -50,6 +60,15 @@ void readSoil() {
   soilPercent = map(soilRaw, 4095, 0, 0, 100);
   soilPercent = constrain(soilPercent, 0, 100);
   Serial.printf("Humedad: %d%% (raw: %d)\n", soilPercent, soilRaw);
+}
+
+void updateNeoPixel() {
+  int ledsOn = map(soilPercent, 0, 100, 0, NEOPIXEL_COUNT);
+  ledsOn = constrain(ledsOn, 0, NEOPIXEL_COUNT);
+  for (int i = 0; i < NEOPIXEL_COUNT; i++) {
+    strip.setPixelColor(i, i < ledsOn ? strip.Color(0, 200, 50) : strip.Color(0, 0, 0));
+  }
+  strip.show();
 }
 
 void handleRoot() {
