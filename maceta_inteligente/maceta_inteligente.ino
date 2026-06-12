@@ -9,8 +9,13 @@
  *  - LED NeoPixel        → Pin GPIO4
  *  - Buzzer              → Pin GPIO14
  *
- * Cambio: Se agrega sensor de nivel de agua.
- *         Buzzer ahora alerta cuando el tanque está vacío.
+ * Cambios: - Sonido cuando la tierra está seca.
+ *          - cada combinacion de alertSoil / alertLight / alertWater 
+ *            produce un comportamiento de luces y sonido distinto y observable.
+ *          - Cuando el grow light está compensando luz (alertLight = true)
+ *            y además la tierra está seca (alertSoil = true), cada 3 segundos
+ *            el grow light hace un "parpadeo" rápido a otro color para avisar
+ *            que también hay que regar / revisar el tanque.
  * =========================================
  */
 
@@ -60,8 +65,14 @@ bool   alertWater     = false;
 bool   growLightOn    = false;
 String plantType      = "Generica";
 int    currentProfile = 5;
+
 unsigned long lastRead    = 0;
 unsigned long lastTankBeep = 0;
+unsigned long lastSoilBeep    = 0;   // control de beep por tierra seca
+unsigned long lastWaterBlink  = 0;   // control del parpadeo "ocupa regar" cada 3s
+
+const unsigned long BLINK_DURATION   = 250;
+const unsigned long BLINK_INTERVAL   = 3000; // cada 3 segundos
 
 void setup() {
   Serial.begin(115200);
@@ -120,6 +131,12 @@ void checkAlerts() {
     beepTanqueVacio();
     lastTankBeep = millis();
   }
+
+  if (newAlertSoil && millis() - lastSoilBeep > 5000) {
+    beepTierraSeca();
+    lastSoilBeep = millis();
+  }
+
   if (alertLight && !newAlertLight) beepLuzOk();
 
   alertSoil  = newAlertSoil;
@@ -129,20 +146,51 @@ void checkAlerts() {
 }
 
 void updateNeoPixel() {
+
+  bool needsWaterAttention = (alertSoil || alertWater);
+
   if (growLightOn) {
-    for (int i = 0; i < NEOPIXEL_COUNT; i++)
-      strip.setPixelColor(i, strip.Color(255, 30, 120));
+    if (needsWaterAttention) {
+      // ESTADO 1: grow light con parpadeo de aviso cada 3 segundos
+      unsigned long now = millis();
+      unsigned long cyclePos = (now - lastWaterBlink) % BLINK_INTERVAL;
+
+      if (cyclePos < BLINK_DURATION) {
+        // Parpadeo de aviso: color ambar/amarillo
+        for (int i = 0; i < NEOPIXEL_COUNT; i++)
+          strip.setPixelColor(i, strip.Color(255, 180, 0));
+      } else {
+        // Color normal del grow light
+        for (int i = 0; i < NEOPIXEL_COUNT; i++)
+          strip.setPixelColor(i, strip.Color(255, 30, 120));
+      }
+
+      // Reiniciar referencia del ciclo si ha pasado un intervalo completo
+      if (now - lastWaterBlink >= BLINK_INTERVAL) {
+        lastWaterBlink = now;
+      }
+
+    } else {
+      // ESTADO 2: grow light fijo, sin parpadeo
+      for (int i = 0; i < NEOPIXEL_COUNT; i++)
+        strip.setPixelColor(i, strip.Color(255, 30, 120));
+    }
+
   } else if (alertSoil) {
+    // ESTADO 3: tierra seca, sin problema de luz -> parpadeo rojo
     static bool toggle = false;
     static unsigned long lastToggle = 0;
     if (millis() - lastToggle > 500) { toggle = !toggle; lastToggle = millis(); }
     for (int i = 0; i < NEOPIXEL_COUNT; i++)
       strip.setPixelColor(i, toggle ? strip.Color(220, 0, 0) : strip.Color(0, 0, 0));
+
   } else {
+    // ESTADO 4: todo normal -> barra verde segun humedad
     int ledsOn = map(soilPercent, 0, 100, 0, NEOPIXEL_COUNT);
     for (int i = 0; i < NEOPIXEL_COUNT; i++)
       strip.setPixelColor(i, i < ledsOn ? strip.Color(0, 200, 50) : strip.Color(0, 0, 0));
   }
+
   strip.show();
 }
 
@@ -157,6 +205,12 @@ void beepTanqueVacio() {
   ledcAttachPin(BUZZER_PIN, 0);
   ledcWriteTone(0, 400); delay(200); ledcWriteTone(0, 0); delay(100);
   ledcWriteTone(0, 400); delay(200); ledcWriteTone(0, 0);
+}
+
+void beepTierraSeca() {
+  ledcAttachPin(BUZZER_PIN, 0);
+  ledcWriteTone(0, 900); delay(120); ledcWriteTone(0, 0); delay(80);
+  ledcWriteTone(0, 900); delay(120); ledcWriteTone(0, 0);
 }
 
 void beepLuzOk() {
