@@ -3,12 +3,14 @@
  *  MACETA INTELIGENTE - ESP32
  * =========================================
  * Componentes:
- *  - Higrómetro FC-28  → Pin GPIO34
- *  - BH1750FVI         → SDA GPIO21 / SCL GPIO22
- *  - LED NeoPixel      → Pin GPIO4
+ *  - Higrómetro FC-28    → Pin GPIO34
+ *  - Sensor nivel agua   → Pin GPIO32
+ *  - BH1750FVI           → SDA GPIO21 / SCL GPIO22
+ *  - LED NeoPixel        → Pin GPIO4
+ *  - Buzzer              → Pin GPIO14
  *
- * Cambio: Se agregan perfiles de planta con
- *         umbrales individuales de humedad y luz
+ * Cambio: Se agrega sensor de nivel de agua.
+ *         Buzzer ahora alerta cuando el tanque está vacío.
  * =========================================
  */
 
@@ -22,10 +24,12 @@
 const char* SSID     = "TU_RED";
 const char* PASSWORD = "TU_PASSWORD";
 
-#define SOIL_PIN       34
-#define BUZZER_PIN     14
-#define NEOPIXEL_PIN   4
-#define NEOPIXEL_COUNT 10
+#define SOIL_PIN              34
+#define WATER_PIN             32
+#define BUZZER_PIN            14
+#define NEOPIXEL_PIN          4
+#define NEOPIXEL_COUNT        10
+#define WATER_EMPTY_THRESHOLD 300
 
 Adafruit_NeoPixel strip(NEOPIXEL_COUNT, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 BH1750 lightMeter;
@@ -46,14 +50,18 @@ PlantProfile profiles[] = {
   { "Generica",  2000, 300.0 },
 };
 
-int   soilRaw       = 0;
-int   soilPercent   = 0;
-float lightLux      = 0.0;
-bool  alertSoil     = false;
-bool  alertLight    = false;
-String plantType    = "Generica";
-int   currentProfile = 5;
-unsigned long lastRead = 0;
+int    soilRaw        = 0;
+int    soilPercent    = 0;
+int    waterRaw       = 0;
+float  lightLux       = 0.0;
+bool   alertSoil      = false;
+bool   alertLight     = false;
+bool   alertWater     = false;
+bool   growLightOn    = false;
+String plantType      = "Generica";
+int    currentProfile = 5;
+unsigned long lastRead    = 0;
+unsigned long lastTankBeep = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -73,9 +81,9 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
   Serial.println("\nWiFi conectado! IP: " + WiFi.localIP().toString());
 
-  server.on("/",      HTTP_GET,  handleRoot);
-  server.on("/data",  HTTP_GET,  handleData);
-  server.on("/plant", HTTP_POST, handleSetPlant);
+  server.on("/",       HTTP_GET,  handleRoot);
+  server.on("/data",   HTTP_GET,  handleData);
+  server.on("/plant",  HTTP_POST, handleSetPlant);
   server.on("/buzzer", HTTP_POST, handleBuzzer);
   server.begin();
 
@@ -97,26 +105,39 @@ void readSensors() {
   soilRaw     = analogRead(SOIL_PIN);
   soilPercent = map(soilRaw, 4095, 0, 0, 100);
   soilPercent = constrain(soilPercent, 0, 100);
-  Serial.printf("Humedad: %d%% | Luz: %.1f lux\n", soilPercent, lightLux);
+  waterRaw    = analogRead(WATER_PIN);
+  Serial.printf("Humedad: %d%% (raw:%d) | Luz: %.1f lux | Agua tanque raw: %d\n",
+                soilPercent, soilRaw, lightLux, waterRaw);
 }
 
 void checkAlerts() {
   PlantProfile& p = profiles[currentProfile];
-  PlantProfile& p = profiles[currentProfile];
   bool newAlertSoil  = (soilRaw > p.soilDryThreshold);
   bool newAlertLight = (lightLux < p.lightMinLux);
+  bool newAlertWater = (waterRaw < WATER_EMPTY_THRESHOLD);
+
+  if (newAlertWater && millis() - lastTankBeep > 5000) {
+    beepTanqueVacio();
+    lastTankBeep = millis();
+  }
   if (alertLight && !newAlertLight) beepLuzOk();
+
   alertSoil  = newAlertSoil;
   alertLight = newAlertLight;
+  alertWater = newAlertWater;
+  growLightOn = alertLight;
 }
 
 void updateNeoPixel() {
-  if (alertLight) {
+  if (growLightOn) {
     for (int i = 0; i < NEOPIXEL_COUNT; i++)
       strip.setPixelColor(i, strip.Color(255, 30, 120));
   } else if (alertSoil) {
+    static bool toggle = false;
+    static unsigned long lastToggle = 0;
+    if (millis() - lastToggle > 500) { toggle = !toggle; lastToggle = millis(); }
     for (int i = 0; i < NEOPIXEL_COUNT; i++)
-      strip.setPixelColor(i, strip.Color(220, 0, 0));
+      strip.setPixelColor(i, toggle ? strip.Color(220, 0, 0) : strip.Color(0, 0, 0));
   } else {
     int ledsOn = map(soilPercent, 0, 100, 0, NEOPIXEL_COUNT);
     for (int i = 0; i < NEOPIXEL_COUNT; i++)
@@ -127,12 +148,15 @@ void updateNeoPixel() {
 
 void beepWifiConnected() {
   ledcAttachPin(BUZZER_PIN, 0);
-  ledcWriteTone(0, 800);  delay(80);
-  ledcWriteTone(0, 0);    delay(40);
-  ledcWriteTone(0, 1200); delay(80);
-  ledcWriteTone(0, 0);    delay(40);
-  ledcWriteTone(0, 1800); delay(120);
-  ledcWriteTone(0, 0);
+  ledcWriteTone(0, 800);  delay(80); ledcWriteTone(0, 0); delay(40);
+  ledcWriteTone(0, 1200); delay(80); ledcWriteTone(0, 0); delay(40);
+  ledcWriteTone(0, 1800); delay(120); ledcWriteTone(0, 0);
+}
+
+void beepTanqueVacio() {
+  ledcAttachPin(BUZZER_PIN, 0);
+  ledcWriteTone(0, 400); delay(200); ledcWriteTone(0, 0); delay(100);
+  ledcWriteTone(0, 400); delay(200); ledcWriteTone(0, 0);
 }
 
 void beepLuzOk() {
@@ -163,9 +187,12 @@ void handleData() {
   doc["luz_lux"]        = (int)lightLux;
   doc["alerta_agua"]    = alertSoil;
   doc["alerta_luz"]     = alertLight;
+  doc["alerta_tanque"]  = alertWater;
+  doc["grow_light"]     = growLightOn;
   doc["planta"]         = plantType;
   doc["umbral_humedad"] = profiles[currentProfile].soilDryThreshold;
   doc["umbral_luz"]     = (int)profiles[currentProfile].lightMinLux;
+  doc["agua_tanque_raw"]= waterRaw;
   String json;
   serializeJson(doc, json);
   server.sendHeader("Access-Control-Allow-Origin", "*");
@@ -177,6 +204,10 @@ void handleSetPlant() {
   deserializeJson(doc, server.arg("plain"));
   plantType      = doc["tipo"].as<String>();
   currentProfile = findProfile(plantType);
+  Serial.printf("Planta: %s | Umbral humedad: %d | Umbral luz: %.0f lux\n",
+                plantType.c_str(),
+                profiles[currentProfile].soilDryThreshold,
+                profiles[currentProfile].lightMinLux);
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", "{\"ok\":true}");
 }
@@ -186,4 +217,3 @@ void handleBuzzer() {
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", "{\"ok\":true}");
 }
-
