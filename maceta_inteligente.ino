@@ -23,6 +23,7 @@ const char* SSID     = "TU_RED";
 const char* PASSWORD = "TU_PASSWORD";
 
 #define SOIL_PIN       34
+#define BUZZER_PIN     14
 #define NEOPIXEL_PIN   4
 #define NEOPIXEL_COUNT 10
 
@@ -52,9 +53,15 @@ bool  alertSoil     = false;
 bool  alertLight    = false;
 String plantType    = "Generica";
 int   currentProfile = 5;
+unsigned long lastRead = 0;
 
 void setup() {
   Serial.begin(115200);
+
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+  ledcSetup(0, 5000, 8);
+
   strip.begin();
   strip.setBrightness(80);
   strip.show();
@@ -69,15 +76,20 @@ void setup() {
   server.on("/",      HTTP_GET,  handleRoot);
   server.on("/data",  HTTP_GET,  handleData);
   server.on("/plant", HTTP_POST, handleSetPlant);
+  server.on("/buzzer", HTTP_POST, handleBuzzer);
   server.begin();
+
+  beepWifiConnected();
 }
 
 void loop() {
   server.handleClient();
-  readSensors();
-  checkAlerts();
-  updateNeoPixel();
-  delay(200);
+  if (millis() - lastRead >= 200) {
+    lastRead = millis();
+    readSensors();
+    checkAlerts();
+    updateNeoPixel();
+  }
 }
 
 void readSensors() {
@@ -85,12 +97,17 @@ void readSensors() {
   soilRaw     = analogRead(SOIL_PIN);
   soilPercent = map(soilRaw, 4095, 0, 0, 100);
   soilPercent = constrain(soilPercent, 0, 100);
+  Serial.printf("Humedad: %d%% | Luz: %.1f lux\n", soilPercent, lightLux);
 }
 
 void checkAlerts() {
   PlantProfile& p = profiles[currentProfile];
-  alertSoil  = (soilRaw > p.soilDryThreshold);
-  alertLight = (lightLux < p.lightMinLux);
+  PlantProfile& p = profiles[currentProfile];
+  bool newAlertSoil  = (soilRaw > p.soilDryThreshold);
+  bool newAlertLight = (lightLux < p.lightMinLux);
+  if (alertLight && !newAlertLight) beepLuzOk();
+  alertSoil  = newAlertSoil;
+  alertLight = newAlertLight;
 }
 
 void updateNeoPixel() {
@@ -106,6 +123,31 @@ void updateNeoPixel() {
       strip.setPixelColor(i, i < ledsOn ? strip.Color(0, 200, 50) : strip.Color(0, 0, 0));
   }
   strip.show();
+}
+
+void beepWifiConnected() {
+  ledcAttachPin(BUZZER_PIN, 0);
+  ledcWriteTone(0, 800);  delay(80);
+  ledcWriteTone(0, 0);    delay(40);
+  ledcWriteTone(0, 1200); delay(80);
+  ledcWriteTone(0, 0);    delay(40);
+  ledcWriteTone(0, 1800); delay(120);
+  ledcWriteTone(0, 0);
+}
+
+void beepLuzOk() {
+  ledcAttachPin(BUZZER_PIN, 0);
+  ledcWriteTone(0, 1000); delay(60);
+  ledcWriteTone(0, 1400); delay(60);
+  ledcWriteTone(0, 1800); delay(100);
+  ledcWriteTone(0, 0);
+}
+
+void beepNotification() {
+  ledcAttachPin(BUZZER_PIN, 0);
+  ledcWriteTone(0, 1000); delay(80);
+  ledcWriteTone(0, 1500); delay(120);
+  ledcWriteTone(0, 0);
 }
 
 int findProfile(String name) {
@@ -138,3 +180,10 @@ void handleSetPlant() {
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", "{\"ok\":true}");
 }
+
+void handleBuzzer() {
+  beepNotification();
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "application/json", "{\"ok\":true}");
+}
+
