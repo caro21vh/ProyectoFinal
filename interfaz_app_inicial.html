@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maceta Inteligente</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #f9f8f5; color: #1a1a18; padding: 16px; }
+header { display: flex; align-items: center; gap: 12px; padding: 20px 0 24px; border-bottom: 1px solid rgba(0,0,0,0.1); margin-bottom: 20px; }
+h1 { font-size: 20px; font-weight: 600; }
+.ip-row { display: flex; gap: 8px; margin-bottom: 20px; }
+.ip-row input { flex: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; }
+.ip-row button { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; }
+.card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); padding: 16px; margin-bottom: 12px; }
+.card-label { font-size: 12px; color: #5F5E5A; margin-bottom: 4px; }
+.card-value { font-size: 28px; font-weight: 600; }
+#log { background: #1a1a18; color: #a8e063; border-radius: 12px; padding: 12px; font-family: monospace; font-size: 12px; height: 120px; overflow-y: auto; }
+</style>
+</head>
+<body>
+<header>
+  <div style="font-size:28px">🌱</div>
+  <h1>Maceta Inteligente</h1>
+</header>
+
+<div class="ip-row">
+  <input type="text" id="esp-ip" placeholder="IP del ESP32 (ej: 192.168.1.XX)">
+  <button onclick="connectESP()">Conectar</button>
+</div>
+
+<div class="card">
+  <div class="card-label">Humedad del suelo</div>
+  <div class="card-value"><span id="val-humedad">--</span> %</div>
+</div>
+
+<div class="card">
+  <div class="card-label">Luz ambiental</div>
+  <div class="card-value"><span id="val-luz">--</span> lux</div>
+</div>
+
+<div style="margin-top:16px; font-size:12px; color:#5F5E5A; margin-bottom:8px;">CONSOLA</div>
+<div id="log"></div>
+
+<script>
+let espIP = '';
+let pollInterval = null;
+
+function log(msg) {
+  const el = document.getElementById('log');
+  const now = new Date().toLocaleTimeString('es-CR');
+  el.innerHTML += `[${now}] ${msg}\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function connectESP() {
+  espIP = document.getElementById('esp-ip').value.trim();
+  if (!espIP) { log('Ingresá la IP del ESP32'); return; }
+  if (pollInterval) clearInterval(pollInterval);
+  log('Conectando a ' + espIP + '...');
+  readOnce();
+  pollInterval = setInterval(readOnce, 3000);
+}
+
+async function readOnce() {
+  if (!espIP) return;
+  try {
+    const res = await fetch(`http://${espIP}/data`, { signal: AbortSignal.timeout(4000) });
+    const d = await res.json();
+    document.getElementById('val-humedad').textContent = d.humedad_pct ?? '--';
+    document.getElementById('val-luz').textContent = d.luz_lux ?? '--';
+    log(`Humedad: ${d.humedad_pct}% | Luz: ${d.luz_lux} lux`);
+  } catch(e) {
+    log('Error: ' + e.message);
+  }
+}
+
+log('App lista. Ingresá la IP del ESP32.');
+</script>
+</body>
+</html>
