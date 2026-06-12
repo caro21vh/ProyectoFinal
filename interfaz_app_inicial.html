@@ -6,40 +6,71 @@
 <title>Maceta Inteligente</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #f9f8f5; color: #1a1a18; padding: 16px; }
-header { display: flex; align-items: center; gap: 12px; padding: 20px 0 24px; border-bottom: 1px solid rgba(0,0,0,0.1); margin-bottom: 20px; }
-h1 { font-size: 20px; font-weight: 600; }
-.ip-row { display: flex; gap: 8px; margin-bottom: 20px; }
-.ip-row input { flex: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; }
-.ip-row button { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; }
-.card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); padding: 16px; margin-bottom: 12px; }
-.card-label { font-size: 12px; color: #5F5E5A; margin-bottom: 4px; }
+:root {
+  --green-50: #EAF3DE; --green-200: #97C459; --green-600: #3B6D11;
+  --amber-50: #FAEEDA; --amber-200: #EF9F27; --amber-600: #854F0B;
+  --red-50: #FCEBEB;   --red-200: #F09595;   --red-600: #A32D2D;
+  --blue-50: #E6F1FB;  --blue-200: #85B7EB;  --blue-600: #185FA5;
+  --gray-50: #F1EFE8;  --gray-600: #5F5E5A;
+  --bg: #f9f8f5; --card: #ffffff; --border: rgba(0,0,0,0.1); --radius: 12px;
+}
+body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--bg); padding: 16px; }
+header { display: flex; align-items: center; gap: 12px; padding: 20px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+header h1 { font-size: 20px; font-weight: 600; }
+header p  { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+.ip-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.ip-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--card); }
+.ip-row button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 14px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; }
+.card-label { font-size: 12px; color: var(--gray-600); margin-bottom: 4px; }
 .card-value { font-size: 28px; font-weight: 600; }
-#log { background: #1a1a18; color: #a8e063; border-radius: 12px; padding: 12px; font-family: monospace; font-size: 12px; height: 120px; overflow-y: auto; }
+.card-unit  { font-size: 13px; color: var(--gray-600); margin-left: 4px; }
+.card-bar   { height: 6px; border-radius: 3px; background: var(--gray-50); margin-top: 10px; overflow: hidden; }
+.card-fill  { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.card.alert { border-color: var(--red-200); background: var(--red-50); }
+.card.alert .card-value { color: var(--red-600); }
+.alert-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 8px; }
+.alert-item.ok   { background: var(--green-50); color: var(--green-600); border: 1px solid var(--green-200); }
+.alert-item.warn { background: var(--amber-50); color: var(--amber-600); border: 1px solid var(--amber-200); }
+.alert-item.info { background: var(--blue-50);  color: var(--blue-600);  border: 1px solid var(--blue-200);  }
+.section-title { font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+#log { background: #1a1a18; color: #a8e063; border-radius: var(--radius); padding: 12px 14px; font-family: monospace; font-size: 12px; height: 120px; overflow-y: auto; }
 </style>
 </head>
 <body>
 <header>
-  <div style="font-size:28px">🌱</div>
-  <h1>Maceta Inteligente</h1>
+  <div style="width:44px;height:44px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:22px">🌱</div>
+  <div>
+    <h1>Maceta Inteligente</h1>
+    <p>Monitor de condiciones en tiempo real</p>
+  </div>
 </header>
 
 <div class="ip-row">
-  <input type="text" id="esp-ip" placeholder="IP del ESP32 (ej: 192.168.1.XX)">
+  <input type="text" id="esp-ip" placeholder="IP del ESP32">
   <button onclick="connectESP()">Conectar</button>
 </div>
 
-<div class="card">
-  <div class="card-label">Humedad del suelo</div>
-  <div class="card-value"><span id="val-humedad">--</span> %</div>
+<div class="grid">
+  <div class="card" id="card-humedad">
+    <div class="card-label">Humedad del suelo</div>
+    <div><span class="card-value" id="val-humedad">--</span><span class="card-unit">%</span></div>
+    <div class="card-bar"><div class="card-fill" id="bar-humedad" style="width:0%;background:#85B7EB"></div></div>
+  </div>
+  <div class="card" id="card-luz">
+    <div class="card-label">Luz ambiental</div>
+    <div><span class="card-value" id="val-luz">--</span><span class="card-unit">lux</span></div>
+    <div class="card-bar"><div class="card-fill" id="bar-luz" style="width:0%;background:#EF9F27"></div></div>
+  </div>
 </div>
 
-<div class="card">
-  <div class="card-label">Luz ambiental</div>
-  <div class="card-value"><span id="val-luz">--</span> lux</div>
-</div>
+<div class="section-title">Estado</div>
+<div id="alert-agua" class="alert-item ok">✓ Humedad correcta</div>
+<div id="alert-luz"  class="alert-item ok">✓ Luz suficiente</div>
 
-<div style="margin-top:16px; font-size:12px; color:#5F5E5A; margin-bottom:8px;">CONSOLA</div>
+<br>
+<div class="section-title">Consola</div>
 <div id="log"></div>
 
 <script>
@@ -57,7 +88,6 @@ function connectESP() {
   espIP = document.getElementById('esp-ip').value.trim();
   if (!espIP) { log('Ingresá la IP del ESP32'); return; }
   if (pollInterval) clearInterval(pollInterval);
-  log('Conectando a ' + espIP + '...');
   readOnce();
   pollInterval = setInterval(readOnce, 3000);
 }
@@ -69,7 +99,20 @@ async function readOnce() {
     const d = await res.json();
     document.getElementById('val-humedad').textContent = d.humedad_pct ?? '--';
     document.getElementById('val-luz').textContent = d.luz_lux ?? '--';
-    log(`Humedad: ${d.humedad_pct}% | Luz: ${d.luz_lux} lux`);
+    document.getElementById('bar-humedad').style.width = (d.humedad_pct ?? 0) + '%';
+    document.getElementById('bar-luz').style.width = Math.min(((d.luz_lux ?? 0) / 600) * 100, 100) + '%';
+
+    const alertA = document.getElementById('alert-agua');
+    const alertL = document.getElementById('alert-luz');
+    document.getElementById('card-humedad').className = 'card' + (d.alerta_agua ? ' alert' : '');
+    document.getElementById('card-luz').className     = 'card' + (d.alerta_luz  ? ' alert' : '');
+
+    alertA.className = d.alerta_agua ? 'alert-item warn' : 'alert-item ok';
+    alertA.textContent = d.alerta_agua ? '⚠ Suelo seco — se necesita riego' : '✓ Humedad correcta';
+    alertL.className = d.alerta_luz ? 'alert-item info' : 'alert-item ok';
+    alertL.textContent = d.alerta_luz ? '💡 Poca luz — grow light activo' : '✓ Luz suficiente';
+
+    log(`H: ${d.humedad_pct}% | Luz: ${d.luz_lux} lux | Suelo: ${d.alerta_agua ? '⚠' : '✓'} | Luz: ${d.alerta_luz ? '⚠' : '✓'}`);
   } catch(e) {
     log('Error: ' + e.message);
   }
