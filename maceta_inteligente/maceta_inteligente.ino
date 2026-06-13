@@ -27,7 +27,7 @@
 #include "NeoPixelController.h"
 #include "WebApiServer.h"
 
-const char* SSID     = "diana's  iPhone";
+const char* SSID     = "Maceta";
 const char* PASSWORD = "holaash1";
 
 #define SOIL_PIN              34
