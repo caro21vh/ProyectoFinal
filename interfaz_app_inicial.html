@@ -11,7 +11,7 @@
 :root {
   --soil:     #7C5C3A;
   --leaf:     #3D6E2F;
-  --leaf-lt:  #6BAF56;
+  --leaf-lt:  #0e2607;
   --leaf-dim: #2A4D20;
   --sun:      #D4A017;
   --sun-lt:   #F0C84A;
@@ -20,18 +20,18 @@
   --alert:    #C0392B;
   --grow:     #9B4FC4;
   --grow-lt:  #C97FEC;
-  --bg:       #0E1A0E;
-  --bg2:      #142014;
-  --card:     #1A2A1A;
-  --card2:    #1F301F;
+  --bg:       #e9e9e9;
+  --bg2:      #a0a0a0;
+  --card:     #c3d2c3;
+  --card2:    #76a076;
   --border:   rgba(109,175,86,0.15);
-  --text:     #E8F0E0;
-  --muted:    #7A9A6A;
+  --text:     #1f2a1d;
+  --muted:    #1b2517;
   --radius:   14px;
 }
 
 body {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Poppins', bold;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -60,7 +60,7 @@ header {
   flex-shrink: 0;
 }
 header h1 {
-  font-family: 'Fraunces', serif;
+  font-family: 'poppins', bold;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -84,7 +84,7 @@ header p {
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 13px;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Poppins', bold;
   background: var(--card);
   color: var(--text);
   outline: none;
@@ -97,10 +97,10 @@ header p {
   border-radius: 10px;
   border: 1px solid var(--leaf);
   background: var(--leaf-dim);
-  color: var(--leaf-lt);
+  color: #76a076;
   cursor: pointer;
   font-size: 13px;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Poppins', bold;
   font-weight: 500;
   transition: background 0.15s;
 }
@@ -160,13 +160,13 @@ header p {
   margin-bottom: 6px;
 }
 .card-value {
-  font-family: 'Fraunces', serif;
+  font-family: 'Poppins', bold;
   font-size: 32px;
   font-weight: 600;
   line-height: 1;
   color: var(--text);
 }
-.card-unit { font-size: 13px; color: var(--muted); margin-left: 3px; font-family: 'DM Mono', monospace; }
+.card-unit { font-size: 13px; color: var(--muted); margin-left: 3px; font-family: 'Poppins', bold; }
 
 .card-bar {
   height: 4px;
@@ -241,7 +241,7 @@ header p {
   margin-bottom: 8px;
   border: 1px solid transparent;
 }
-.alert-item.ok   { background: rgba(61,110,47,0.12); border-color: rgba(107,175,86,0.2); color: var(--leaf-lt); }
+.alert-item.ok   { background: rgba(133, 199, 115, 0.393); border-color: rgba(45, 70, 37, 0.2); color: var(--leaf-lt); }
 .alert-item.warn { background: rgba(192,57,43,0.10); border-color: rgba(192,57,43,0.3);  color: #E57373; }
 .alert-item.info { background: rgba(155,79,196,0.10); border-color: rgba(155,79,196,0.3); color: var(--grow-lt); }
 
@@ -259,7 +259,7 @@ header p {
   background: var(--card);
   cursor: pointer;
   font-size: 12px;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Poppins', bold;
   color: var(--muted);
   text-align: center;
   transition: all 0.15s;
@@ -271,7 +271,11 @@ header p {
   background: rgba(61,110,47,0.18);
   color: var(--leaf-lt);
 }
-.plant-btn:hover:not(.active) { border-color: rgba(107,175,86,0.3); color: var(--text); }
+.plant-btn:hover:not(.active) { 
+  border-color: rgba(35, 62, 27, 0.3);
+  color: var(--text);
+  background: rgba(43, 67, 35, 0.12);
+}
 
 /* ---- ACTIONS ---- */
 .actions { display: flex; gap: 10px; margin-bottom: 24px; }
@@ -283,17 +287,17 @@ header p {
   color: var(--muted);
   cursor: pointer;
   font-size: 13px;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Poppins', bold;
   transition: all 0.15s;
 }
 .action-btn:hover { border-color: var(--leaf); color: var(--leaf-lt); }
-.action-btn.danger { border-color: rgba(192,57,43,0.3); color: #E57373; }
+.action-btn.danger { border-color: rgba(192,57,43,0.3); color: #931a1a; }
 .action-btn.danger:hover { background: rgba(192,57,43,0.1); }
 .action-btn:active { opacity: 0.7; }
 
 /* ---- LOG ---- */
 #log {
-  background: #0A120A;
+  background: #e5e5e5;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 14px;
@@ -302,10 +306,10 @@ header p {
   height: 130px;
   overflow-y: auto;
   line-height: 1.8;
-  color: #6BAF56;
+  color: #181818;
 }
-#log .ts { color: #3A5A2A; }
-#log .err { color: #E57373; }
+#log .ts { color: #7c7c7c; }
+#log .err { color: #a72424; }
 #log::-webkit-scrollbar { width: 4px; }
 #log::-webkit-scrollbar-track { background: transparent; }
 #log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -320,7 +324,7 @@ header p {
   <div class="plant-orb">🌱</div>
   <div>
     <h1>Maceta Inteligente</h1>
-    <p>Monitor en tiempo real · TEC CE5507</p>
+    <p>ITCR | Escuela de Ingeniería en Computadores | CE5507 | Marisa Méndez Mesén - Carolina Montero Shum - Diana Obando Chacón - Carolina Vargas Hidalgo - Albert Vega Camacho </p>
   </div>
 </header>
 
@@ -383,9 +387,9 @@ header p {
 <!-- Estado -->
 <div class="alerts-section">
   <div class="section-title">Estado del sistema</div>
-  <div id="alert-agua" class="alert-item ok">✓ Humedad correcta</div>
-  <div id="alert-luz"  class="alert-item ok">✓ Luz suficiente</div>
-  <div id="alert-tanque" class="alert-item ok">✓ Tanque con agua</div>
+  <div id="alert-agua" class="alert-item ok">✔️ Humedad correcta</div>
+  <div id="alert-luz"  class="alert-item ok">✔️ Luz suficiente</div>
+  <div id="alert-tanque" class="alert-item ok">✔️ Tanque con agua</div>
 </div>
 
 <div class="divider"></div>
@@ -397,26 +401,15 @@ header p {
     <span class="plant-emoji">🪴</span>Suculenta
     <span class="plant-range">300+ lux</span>
   </button>
-  <button class="plant-btn" onclick="setPlant(this,'Helecho')">
-    <span class="plant-emoji">🌿</span>Helecho
-    <span class="plant-range">200+ lux</span>
-  </button>
   <button class="plant-btn" onclick="setPlant(this,'Cactus')">
     <span class="plant-emoji">🌵</span>Cactus
-    <span class="plant-range">500+ lux</span>
+    <span class="plant-range">700+ lux</span>
   </button>
   <button class="plant-btn" onclick="setPlant(this,'Tomate')">
     <span class="plant-emoji">🍅</span>Tomate
     <span class="plant-range">600+ lux</span>
   </button>
-  <button class="plant-btn" onclick="setPlant(this,'Albahaca')">
-    <span class="plant-emoji">🌱</span>Albahaca
-    <span class="plant-range">400+ lux</span>
-  </button>
-  <button class="plant-btn active" onclick="setPlant(this,'Generica')">
-    <span class="plant-emoji">🪻</span>Genérica
-    <span class="plant-range">300+ lux</span>
-  </button>
+  
 </div>
 
 <div class="divider"></div>
@@ -505,10 +498,10 @@ function updateUI(d) {
 
   if (d.alerta_agua) {
     alertA.className = 'alert-item warn';
-    alertA.textContent = '⚠ Suelo seco — se necesita riego';
+    alertA.textContent = '⚠️ Suelo seco — se necesita riego';
   } else {
     alertA.className = 'alert-item ok';
-    alertA.textContent = '✓ Humedad correcta';
+    alertA.textContent = '✔️ Humedad correcta';
   }
 
   if (d.alerta_luz) {
@@ -516,7 +509,7 @@ function updateUI(d) {
     alertL.textContent = '💡 Luz insuficiente — grow light activo';
   } else {
     alertL.className = 'alert-item ok';
-    alertL.textContent = '✓ Luz suficiente';
+    alertL.textContent = '✔️ Luz suficiente';
   }
 
   // Banner de grow light
@@ -534,13 +527,13 @@ function updateUI(d) {
   const alertT = document.getElementById('alert-tanque');
   if (d.alerta_tanque) {
     alertT.className = 'alert-item warn';
-    alertT.textContent = '⚠ Tanque vacío — rellenar depósito';
+    alertT.textContent = '⚠️ Tanque vacío — rellenar depósito';
   } else {
     alertT.className = 'alert-item ok';
-    alertT.textContent = '✓ Tanque con agua';
+    alertT.textContent = '✔️ Tanque con agua';
   }
 
-  log(`H: ${h}% | Luz: ${lux} lux / ${umbralLuz} lux mín | Suelo: ${d.alerta_agua ? '⚠' : '✓'} | Luz: ${d.alerta_luz ? '⚠ grow' : '✓'} | Tanque: ${d.alerta_tanque ? '⚠ vacío' : '✓'}`);
+  log(`H: ${h}% | Luz: ${lux} lux / ${umbralLuz} lux mín | Suelo: ${d.alerta_agua ? '⚠️' : '✔️'} | Luz: ${d.alerta_luz ? '⚠️ grow' : '✔️'} | Tanque: ${d.alerta_tanque ? '⚠ vacío' : '✓'}`);
 }
 
 async function setPlant(btn, name) {
