@@ -26,8 +26,8 @@
 #include <WebServer.h>
 #include <ArduinoJson.h>
 
-const char* SSID     = "TU_RED";
-const char* PASSWORD = "TU_PASSWORD";
+const char* SSID     = "diana´s iPhone";
+const char* PASSWORD = "holaash1";
 
 #define SOIL_PIN              34
 #define WATER_PIN             32
