@@ -4,113 +4,459 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maceta Inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
-  --green-50: #EAF3DE; --green-200: #97C459; --green-600: #3B6D11;
-  --amber-50: #FAEEDA; --amber-200: #EF9F27; --amber-600: #854F0B;
-  --red-50: #FCEBEB;   --red-200: #F09595;   --red-600: #A32D2D;
-  --blue-50: #E6F1FB;  --blue-200: #85B7EB;  --blue-600: #185FA5;
-  --gray-50: #F1EFE8;  --gray-600: #5F5E5A;
-  --bg: #f9f8f5; --card: #ffffff; --border: rgba(0,0,0,0.1); --radius: 12px;
+  --soil:     #7C5C3A;
+  --leaf:     #3D6E2F;
+  --leaf-lt:  #6BAF56;
+  --leaf-dim: #2A4D20;
+  --sun:      #D4A017;
+  --sun-lt:   #F0C84A;
+  --water:    #2D7DD2;
+  --water-lt: #6AAEE8;
+  --alert:    #C0392B;
+  --grow:     #9B4FC4;
+  --grow-lt:  #C97FEC;
+  --bg:       #0E1A0E;
+  --bg2:      #142014;
+  --card:     #1A2A1A;
+  --card2:    #1F301F;
+  --border:   rgba(109,175,86,0.15);
+  --text:     #E8F0E0;
+  --muted:    #7A9A6A;
+  --radius:   14px;
 }
-body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--bg); padding: 16px; }
-header { display: flex; align-items: center; gap: 12px; padding: 20px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-header h1 { font-size: 20px; font-weight: 600; }
-header p  { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
-.ip-row { display: flex; gap: 8px; margin-bottom: 16px; }
-.ip-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
-.ip-row button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; }
-.card-label { font-size: 12px; color: var(--gray-600); margin-bottom: 4px; }
-.card-value { font-size: 28px; font-weight: 600; }
-.card-unit  { font-size: 13px; color: var(--gray-600); margin-left: 4px; }
-.card-bar   { height: 6px; border-radius: 3px; background: var(--gray-50); margin-top: 10px; overflow: hidden; }
-.card-fill  { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-.card-threshold { font-size: 10px; color: var(--gray-600); margin-top: 6px; }
-.card.alert { border-color: var(--red-200); background: var(--red-50); }
-.card.alert .card-value { color: var(--red-600); }
-.alert-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 8px; border: 1px solid transparent; }
-.alert-item.ok   { background: var(--green-50); color: var(--green-600); border-color: var(--green-200); }
-.alert-item.warn { background: var(--amber-50); color: var(--amber-600); border-color: var(--amber-200); }
-.alert-item.info { background: var(--blue-50);  color: var(--blue-600);  border-color: var(--blue-200);  }
-.section-title { font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-.plant-selector { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 20px; }
-.plant-btn { padding: 10px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 13px; text-align: center; }
-.plant-btn .plant-emoji { font-size: 20px; display: block; margin-bottom: 4px; }
-.plant-btn .plant-range { font-size: 10px; display: block; color: var(--gray-600); margin-top: 2px; }
-.plant-btn.active { border-color: var(--green-200); background: var(--green-50); color: var(--green-600); font-weight: 500; }
-.actions { display: flex; gap: 10px; margin-bottom: 20px; }
-.action-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 14px; }
-.action-btn.danger { border-color: var(--red-200); color: var(--red-600); }
-#log { background: #1a1a18; color: #a8e063; border-radius: var(--radius); padding: 12px 14px; font-family: monospace; font-size: 12px; height: 120px; overflow-y: auto; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px 16px 40px;
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(61,110,47,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 90% 100%, rgba(45,125,210,0.10) 0%, transparent 50%);
+}
+
+/* ---- HEADER ---- */
+header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.plant-orb {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--leaf-dim), var(--leaf));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 20px rgba(61,110,47,0.4);
+  flex-shrink: 0;
+}
+header h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--leaf-lt);
+}
+header p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---- IP ROW ---- */
+.ip-row {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.ip-row input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.ip-row input:focus { border-color: var(--leaf); }
+.ip-row input::placeholder { color: var(--muted); }
+.ip-row button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--leaf);
+  background: var(--leaf-dim);
+  color: var(--leaf-lt);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+.ip-row button:hover { background: var(--leaf); color: #fff; }
+.ip-row button:active { opacity: 0.8; }
+
+/* ---- BADGE ---- */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.status-badge.ok    { border-color: rgba(107,175,86,0.4); color: var(--leaf-lt); }
+.status-badge.error { border-color: rgba(192,57,43,0.4);  color: #E57373; }
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+}
+.status-badge.ok .dot { animation: pulse 2s infinite; }
+@keyframes pulse {
+  0%,100% { opacity:1; } 50% { opacity:0.3; }
+}
+
+/* ---- SENSOR CARDS ---- */
+.grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--leaf));
+  opacity: 0.6;
+}
+.card-icon { font-size: 18px; margin-bottom: 8px; display: block; }
+.card-label {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.card-value {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+}
+.card-unit { font-size: 13px; color: var(--muted); margin-left: 3px; font-family: 'DM Mono', monospace; }
+
+.card-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  margin-top: 12px;
+  overflow: hidden;
+}
+.card-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
+}
+
+.card-threshold {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* Alert states */
+.card.alert-soil  { border-color: rgba(192,57,43,0.5); --card-accent: var(--alert); }
+.card.alert-soil .card-value { color: #E57373; }
+.card.alert-light { border-color: rgba(155,79,196,0.5); --card-accent: var(--grow); }
+.card.alert-light .card-value { color: var(--grow-lt); }
+.card.alert-tank  { border-color: rgba(212,160,23,0.5); --card-accent: var(--sun); }
+.card.alert-tank .card-value { color: var(--sun-lt); }
+
+/* ---- GROW LIGHT BANNER ---- */
+.grow-banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(155,79,196,0.12);
+  border: 1px solid rgba(155,79,196,0.35);
+  color: var(--grow-lt);
+  font-size: 13px;
+  margin-bottom: 16px;
+  animation: glow-pulse 2s infinite;
+}
+.grow-banner.active { display: flex; }
+.grow-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--grow-lt);
+  flex-shrink: 0;
+  animation: glow-pulse 1.2s infinite;
+}
+@keyframes glow-pulse {
+  0%,100% { box-shadow: 0 0 6px var(--grow-lt); opacity:1; }
+  50% { box-shadow: 0 0 14px var(--grow-lt); opacity:0.7; }
+}
+
+/* ---- ESTADO ---- */
+.section-title {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.alerts-section { margin-bottom: 20px; }
+.alert-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+}
+.alert-item.ok   { background: rgba(61,110,47,0.12); border-color: rgba(107,175,86,0.2); color: var(--leaf-lt); }
+.alert-item.warn { background: rgba(192,57,43,0.10); border-color: rgba(192,57,43,0.3);  color: #E57373; }
+.alert-item.info { background: rgba(155,79,196,0.10); border-color: rgba(155,79,196,0.3); color: var(--grow-lt); }
+
+/* ---- PLANT SELECTOR ---- */
+.plant-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.plant-btn {
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  text-align: center;
+  transition: all 0.15s;
+}
+.plant-btn .plant-emoji { font-size: 20px; display: block; margin-bottom: 5px; }
+.plant-btn .plant-range { font-size: 10px; display: block; margin-top: 3px; opacity: 0.7; }
+.plant-btn.active {
+  border-color: var(--leaf);
+  background: rgba(61,110,47,0.18);
+  color: var(--leaf-lt);
+}
+.plant-btn:hover:not(.active) { border-color: rgba(107,175,86,0.3); color: var(--text); }
+
+/* ---- ACTIONS ---- */
+.actions { display: flex; gap: 10px; margin-bottom: 24px; }
+.action-btn {
+  flex: 1; padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  transition: all 0.15s;
+}
+.action-btn:hover { border-color: var(--leaf); color: var(--leaf-lt); }
+.action-btn.danger { border-color: rgba(192,57,43,0.3); color: #E57373; }
+.action-btn.danger:hover { background: rgba(192,57,43,0.1); }
+.action-btn:active { opacity: 0.7; }
+
+/* ---- LOG ---- */
+#log {
+  background: #0A120A;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  height: 130px;
+  overflow-y: auto;
+  line-height: 1.8;
+  color: #6BAF56;
+}
+#log .ts { color: #3A5A2A; }
+#log .err { color: #E57373; }
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-track { background: transparent; }
+#log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ---- DIVIDER ---- */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
 </style>
 </head>
 <body>
+
 <header>
-  <div style="width:44px;height:44px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:22px">🌱</div>
-  <div><h1>Maceta Inteligente</h1><p>Monitor de condiciones en tiempo real</p></div>
+  <div class="plant-orb">🌱</div>
+  <div>
+    <h1>Maceta Inteligente</h1>
+    <p>Monitor en tiempo real · TEC CE5507</p>
+  </div>
 </header>
 
 <div class="ip-row">
-  <input type="text" id="esp-ip" placeholder="IP del ESP32">
+  <input type="text" id="esp-ip" placeholder="IP del ESP32 (ej: 192.168.1.XX)">
   <button onclick="connectESP()">Conectar</button>
 </div>
 
+<div id="conn-badge" class="status-badge">
+  <span class="dot"></span> Sin conexión
+</div>
+
+<!-- Grow light banner -->
+<div id="grow-banner" class="grow-banner">
+  <span class="grow-dot"></span>
+  <span>Grow light activo — LEDs compensando luz insuficiente</span>
+</div>
+
+<!-- Tarjetas sensores -->
 <div class="grid">
-  <div class="card" id="card-humedad">
+  <div class="card" id="card-humedad" style="--card-accent: var(--water);">
+    <span class="card-icon">💧</span>
     <div class="card-label">Humedad del suelo</div>
-    <div><span class="card-value" id="val-humedad">--</span><span class="card-unit">%</span></div>
-    <div class="card-bar"><div class="card-fill" id="bar-humedad" style="width:0%;background:#85B7EB"></div></div>
-    <div class="card-threshold" id="th-humedad"></div>
+    <div>
+      <span class="card-value" id="val-humedad">--</span>
+      <span class="card-unit">%</span>
+    </div>
+    <div class="card-bar">
+      <div class="card-fill" id="bar-humedad" style="width:0%; background: var(--water-lt);"></div>
+    </div>
+    <div class="card-threshold" id="th-humedad">umbral: --</div>
   </div>
-  <div class="card" id="card-luz">
+
+  <div class="card" id="card-luz" style="--card-accent: var(--sun);">
+    <span class="card-icon">☀️</span>
     <div class="card-label">Luz ambiental</div>
-    <div><span class="card-value" id="val-luz">--</span><span class="card-unit">lux</span></div>
-    <div class="card-bar"><div class="card-fill" id="bar-luz" style="width:0%;background:#EF9F27"></div></div>
-    <div class="card-threshold" id="th-luz"></div>
+    <div>
+      <span class="card-value" id="val-luz">--</span>
+      <span class="card-unit">lux</span>
+    </div>
+    <div class="card-bar">
+      <div class="card-fill" id="bar-luz" style="width:0%; background: var(--sun-lt);"></div>
+    </div>
+    <div class="card-threshold" id="th-luz">umbral: --</div>
+  </div>
+
+  <div class="card" id="card-tanque" style="--card-accent: var(--water);">
+    <span class="card-icon">🪣</span>
+    <div class="card-label">Nivel tanque</div>
+    <div>
+      <span class="card-value" id="val-tanque">--</span>
+    </div>
+    <div class="card-bar">
+      <div class="card-fill" id="bar-tanque" style="width:0%; background: var(--water-lt);"></div>
+    </div>
+    <div class="card-threshold" id="th-tanque">vacío &lt; 300 raw</div>
   </div>
 </div>
 
-<div class="section-title">Estado</div>
-<div id="alert-agua" class="alert-item ok">✓ Humedad correcta</div>
-<div id="alert-luz"  class="alert-item ok">✓ Luz suficiente</div>
-<br>
+<!-- Estado -->
+<div class="alerts-section">
+  <div class="section-title">Estado del sistema</div>
+  <div id="alert-agua" class="alert-item ok">✓ Humedad correcta</div>
+  <div id="alert-luz"  class="alert-item ok">✓ Luz suficiente</div>
+  <div id="alert-tanque" class="alert-item ok">✓ Tanque con agua</div>
+</div>
 
+<div class="divider"></div>
+
+<!-- Tipo de planta -->
 <div class="section-title">Tipo de planta</div>
 <div class="plant-selector">
-  <button class="plant-btn" onclick="setPlant(this,'Suculenta')"><span class="plant-emoji">🪴</span>Suculenta<span class="plant-range">300+ lux</span></button>
-  <button class="plant-btn" onclick="setPlant(this,'Helecho')"><span class="plant-emoji">🌿</span>Helecho<span class="plant-range">200+ lux</span></button>
-  <button class="plant-btn" onclick="setPlant(this,'Cactus')"><span class="plant-emoji">🌵</span>Cactus<span class="plant-range">500+ lux</span></button>
-  <button class="plant-btn" onclick="setPlant(this,'Tomate')"><span class="plant-emoji">🍅</span>Tomate<span class="plant-range">600+ lux</span></button>
-  <button class="plant-btn" onclick="setPlant(this,'Albahaca')"><span class="plant-emoji">🌱</span>Albahaca<span class="plant-range">400+ lux</span></button>
-  <button class="plant-btn active" onclick="setPlant(this,'Generica')"><span class="plant-emoji">🪻</span>Genérica<span class="plant-range">300+ lux</span></button>
+  <button class="plant-btn" onclick="setPlant(this,'Suculenta')">
+    <span class="plant-emoji">🪴</span>Suculenta
+    <span class="plant-range">300+ lux</span>
+  </button>
+  <button class="plant-btn" onclick="setPlant(this,'Helecho')">
+    <span class="plant-emoji">🌿</span>Helecho
+    <span class="plant-range">200+ lux</span>
+  </button>
+  <button class="plant-btn" onclick="setPlant(this,'Cactus')">
+    <span class="plant-emoji">🌵</span>Cactus
+    <span class="plant-range">500+ lux</span>
+  </button>
+  <button class="plant-btn" onclick="setPlant(this,'Tomate')">
+    <span class="plant-emoji">🍅</span>Tomate
+    <span class="plant-range">600+ lux</span>
+  </button>
+  <button class="plant-btn" onclick="setPlant(this,'Albahaca')">
+    <span class="plant-emoji">🌱</span>Albahaca
+    <span class="plant-range">400+ lux</span>
+  </button>
+  <button class="plant-btn active" onclick="setPlant(this,'Generica')">
+    <span class="plant-emoji">🪻</span>Genérica
+    <span class="plant-range">300+ lux</span>
+  </button>
 </div>
 
+<div class="divider"></div>
+
+<!-- Acciones -->
 <div class="actions">
   <button class="action-btn danger" onclick="triggerBuzzer()">🔔 Beep prueba</button>
   <button class="action-btn" onclick="readOnce()">🔄 Actualizar</button>
 </div>
 
+<!-- Log -->
 <div class="section-title">Consola</div>
 <div id="log"></div>
 
 <script>
 let espIP = '';
 let pollInterval = null;
+let selectedPlant = 'Generica';
 
-function log(msg) {
+function log(msg, isError = false) {
   const el = document.getElementById('log');
   const now = new Date().toLocaleTimeString('es-CR');
-  el.innerHTML += `[${now}] ${msg}\n`;
+  const cls = isError ? 'class="err"' : '';
+  el.innerHTML += `<span class="ts">[${now}]</span> <span ${cls}>${msg}</span>\n`;
   el.scrollTop = el.scrollHeight;
+}
+
+function setConnBadge(state) {
+  const b = document.getElementById('conn-badge');
+  b.className = 'status-badge ' + state;
+  if (state === 'ok')    b.innerHTML = `<span class="dot"></span> Conectado · ${espIP}`;
+  else if (state === 'error') b.innerHTML = `<span class="dot"></span> Sin respuesta`;
+  else b.innerHTML = `<span class="dot"></span> Sin conexión`;
 }
 
 function connectESP() {
   espIP = document.getElementById('esp-ip').value.trim();
-  if (!espIP) { log('Ingresá la IP'); return; }
+  if (!espIP) { log('Ingresá la IP del ESP32', true); return; }
   if (pollInterval) clearInterval(pollInterval);
+  log('Conectando a http://' + espIP + ' ...');
   readOnce();
   pollInterval = setInterval(readOnce, 3000);
 }
@@ -120,49 +466,112 @@ async function readOnce() {
   try {
     const res = await fetch(`http://${espIP}/data`, { signal: AbortSignal.timeout(4000) });
     const d = await res.json();
-    const umbralLuz = d.umbral_luz ?? 300;
-    document.getElementById('val-humedad').textContent = d.humedad_pct ?? '--';
-    document.getElementById('val-luz').textContent = d.luz_lux ?? '--';
-    document.getElementById('bar-humedad').style.width = (d.humedad_pct ?? 0) + '%';
-    document.getElementById('bar-luz').style.width = Math.min(((d.luz_lux ?? 0) / (umbralLuz * 2)) * 100, 100) + '%';
-    document.getElementById('th-humedad').textContent = d.umbral_humedad ? `umbral: raw > ${d.umbral_humedad}` : '';
-    document.getElementById('th-luz').textContent = umbralLuz ? `mínimo: ${umbralLuz} lux` : '';
+    updateUI(d);
+    setConnBadge('ok');
+  } catch(e) {
+    setConnBadge('error');
+    log('Error: ' + e.message, true);
+  }
+}
 
-    document.getElementById('card-humedad').className = 'card' + (d.alerta_agua ? ' alert' : '');
-    document.getElementById('card-luz').className     = 'card' + (d.alerta_luz  ? ' alert' : '');
+function updateUI(d) {
+  // Humedad
+  const h = d.humedad_pct ?? 0;
+  document.getElementById('val-humedad').textContent = h;
+  document.getElementById('bar-humedad').style.width = h + '%';
 
-    const alertA = document.getElementById('alert-agua');
-    alertA.className = d.alerta_agua ? 'alert-item warn' : 'alert-item ok';
-    alertA.textContent = d.alerta_agua ? '⚠ Suelo seco — se necesita riego' : '✓ Humedad correcta';
+  // Luz en lux reales
+  const lux = d.luz_lux ?? 0;
+  const umbralLuz = d.umbral_luz ?? 300;
+  document.getElementById('val-luz').textContent = lux;
+  const luxPct = Math.min((lux / (umbralLuz * 2)) * 100, 100);
+  document.getElementById('bar-luz').style.width = luxPct + '%';
 
-    const alertL = document.getElementById('alert-luz');
-    alertL.className = d.alerta_luz ? 'alert-item info' : 'alert-item ok';
-    alertL.textContent = d.alerta_luz ? '💡 Luz insuficiente — grow light activo' : '✓ Luz suficiente';
+  // Umbrales en las tarjetas
+  document.getElementById('th-humedad').textContent =
+    d.umbral_humedad ? `umbral suelo seco: raw > ${d.umbral_humedad}` : '';
+  document.getElementById('th-luz').textContent =
+    umbralLuz ? `umbral mínimo: ${umbralLuz} lux` : '';
 
-    log(`H: ${d.humedad_pct}% | Luz: ${d.luz_lux}/${umbralLuz} lux | Suelo:${d.alerta_agua?'⚠':'✓'} Luz:${d.alerta_luz?'⚠':'✓'}`);
-  } catch(e) { log('Error: ' + e.message); }
+  // Clases de alerta en las tarjetas
+  const cardH = document.getElementById('card-humedad');
+  const cardL = document.getElementById('card-luz');
+  cardH.className = 'card' + (d.alerta_agua ? ' alert-soil' : '');
+  cardL.className = 'card' + (d.alerta_luz  ? ' alert-light' : '');
+
+  // Alertas de estado
+  const alertA = document.getElementById('alert-agua');
+  const alertL = document.getElementById('alert-luz');
+
+  if (d.alerta_agua) {
+    alertA.className = 'alert-item warn';
+    alertA.textContent = '⚠ Suelo seco — se necesita riego';
+  } else {
+    alertA.className = 'alert-item ok';
+    alertA.textContent = '✓ Humedad correcta';
+  }
+
+  if (d.alerta_luz) {
+    alertL.className = 'alert-item info';
+    alertL.textContent = '💡 Luz insuficiente — grow light activo';
+  } else {
+    alertL.className = 'alert-item ok';
+    alertL.textContent = '✓ Luz suficiente';
+  }
+
+  // Banner de grow light
+  const banner = document.getElementById('grow-banner');
+  banner.className = 'grow-banner' + (d.grow_light ? ' active' : '');
+
+  // Tanque de agua
+  const waterRaw = d.agua_tanque_raw ?? 0;
+  const waterPct = Math.min((waterRaw / 600) * 100, 100);
+  document.getElementById('val-tanque').textContent = d.alerta_tanque ? 'Vacío' : 'OK';
+  document.getElementById('bar-tanque').style.width = waterPct + '%';
+  const cardT = document.getElementById('card-tanque');
+  cardT.className = 'card' + (d.alerta_tanque ? ' alert-tank' : '');
+
+  const alertT = document.getElementById('alert-tanque');
+  if (d.alerta_tanque) {
+    alertT.className = 'alert-item warn';
+    alertT.textContent = '⚠ Tanque vacío — rellenar depósito';
+  } else {
+    alertT.className = 'alert-item ok';
+    alertT.textContent = '✓ Tanque con agua';
+  }
+
+  log(`H: ${h}% | Luz: ${lux} lux / ${umbralLuz} lux mín | Suelo: ${d.alerta_agua ? '⚠' : '✓'} | Luz: ${d.alerta_luz ? '⚠ grow' : '✓'} | Tanque: ${d.alerta_tanque ? '⚠ vacío' : '✓'}`);
 }
 
 async function setPlant(btn, name) {
+  selectedPlant = name;
   document.querySelectorAll('.plant-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  if (!espIP) { log('Planta: ' + name + ' (sin conexión)'); return; }
+  if (!espIP) {
+    log('Planta seleccionada: ' + name + ' (sin conexión activa)');
+    return;
+  }
   try {
-    await fetch(`http://${espIP}/plant`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({tipo:name}), signal: AbortSignal.timeout(3000) });
-    log('Planta enviada: ' + name);
-    readOnce();
-  } catch(e) { log('Error: ' + e.message); }
+    await fetch(`http://${espIP}/plant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo: name }),
+      signal: AbortSignal.timeout(3000)
+    });
+    log('Planta enviada al ESP32: ' + name);
+    readOnce(); // Actualizar umbrales inmediatamente
+  } catch(e) { log('Error enviando planta: ' + e.message, true); }
 }
 
 async function triggerBuzzer() {
-  if (!espIP) { log('Conectá primero'); return; }
+  if (!espIP) { log('Conectá primero el ESP32', true); return; }
   try {
-    await fetch(`http://${espIP}/buzzer`, { method:'POST', signal: AbortSignal.timeout(3000) });
-    log('Buzzer activado');
-  } catch(e) { log('Error: ' + e.message); }
+    await fetch(`http://${espIP}/buzzer`, { method: 'POST', signal: AbortSignal.timeout(3000) });
+    log('Buzzer activado manualmente');
+  } catch(e) { log('Error: ' + e.message, true); }
 }
 
-log('App lista. Ingresá la IP del ESP32.');
+log('App lista — ingresá la IP del ESP32 y presioná Conectar.');
 </script>
 </body>
 </html>
