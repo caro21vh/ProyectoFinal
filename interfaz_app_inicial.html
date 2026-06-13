@@ -19,8 +19,8 @@ header { display: flex; align-items: center; gap: 12px; padding: 20px 0 24px; bo
 header h1 { font-size: 20px; font-weight: 600; }
 header p  { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
 .ip-row { display: flex; gap: 8px; margin-bottom: 16px; }
-.ip-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--card); }
-.ip-row button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 14px; }
+.ip-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+.ip-row button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; }
 .card-label { font-size: 12px; color: var(--gray-600); margin-bottom: 4px; }
@@ -28,23 +28,29 @@ header p  { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
 .card-unit  { font-size: 13px; color: var(--gray-600); margin-left: 4px; }
 .card-bar   { height: 6px; border-radius: 3px; background: var(--gray-50); margin-top: 10px; overflow: hidden; }
 .card-fill  { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.card-threshold { font-size: 10px; color: var(--gray-600); margin-top: 6px; }
 .card.alert { border-color: var(--red-200); background: var(--red-50); }
 .card.alert .card-value { color: var(--red-600); }
-.alert-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 8px; }
-.alert-item.ok   { background: var(--green-50); color: var(--green-600); border: 1px solid var(--green-200); }
-.alert-item.warn { background: var(--amber-50); color: var(--amber-600); border: 1px solid var(--amber-200); }
-.alert-item.info { background: var(--blue-50);  color: var(--blue-600);  border: 1px solid var(--blue-200);  }
+.alert-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 8px; border: 1px solid transparent; }
+.alert-item.ok   { background: var(--green-50); color: var(--green-600); border-color: var(--green-200); }
+.alert-item.warn { background: var(--amber-50); color: var(--amber-600); border-color: var(--amber-200); }
+.alert-item.info { background: var(--blue-50);  color: var(--blue-600);  border-color: var(--blue-200);  }
 .section-title { font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+.plant-selector { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 20px; }
+.plant-btn { padding: 10px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 13px; text-align: center; }
+.plant-btn .plant-emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.plant-btn .plant-range { font-size: 10px; display: block; color: var(--gray-600); margin-top: 2px; }
+.plant-btn.active { border-color: var(--green-200); background: var(--green-50); color: var(--green-600); font-weight: 500; }
+.actions { display: flex; gap: 10px; margin-bottom: 20px; }
+.action-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 14px; }
+.action-btn.danger { border-color: var(--red-200); color: var(--red-600); }
 #log { background: #1a1a18; color: #a8e063; border-radius: var(--radius); padding: 12px 14px; font-family: monospace; font-size: 12px; height: 120px; overflow-y: auto; }
 </style>
 </head>
 <body>
 <header>
   <div style="width:44px;height:44px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:22px">🌱</div>
-  <div>
-    <h1>Maceta Inteligente</h1>
-    <p>Monitor de condiciones en tiempo real</p>
-  </div>
+  <div><h1>Maceta Inteligente</h1><p>Monitor de condiciones en tiempo real</p></div>
 </header>
 
 <div class="ip-row">
@@ -57,19 +63,36 @@ header p  { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
     <div class="card-label">Humedad del suelo</div>
     <div><span class="card-value" id="val-humedad">--</span><span class="card-unit">%</span></div>
     <div class="card-bar"><div class="card-fill" id="bar-humedad" style="width:0%;background:#85B7EB"></div></div>
+    <div class="card-threshold" id="th-humedad"></div>
   </div>
   <div class="card" id="card-luz">
     <div class="card-label">Luz ambiental</div>
     <div><span class="card-value" id="val-luz">--</span><span class="card-unit">lux</span></div>
     <div class="card-bar"><div class="card-fill" id="bar-luz" style="width:0%;background:#EF9F27"></div></div>
+    <div class="card-threshold" id="th-luz"></div>
   </div>
 </div>
 
 <div class="section-title">Estado</div>
 <div id="alert-agua" class="alert-item ok">✓ Humedad correcta</div>
 <div id="alert-luz"  class="alert-item ok">✓ Luz suficiente</div>
-
 <br>
+
+<div class="section-title">Tipo de planta</div>
+<div class="plant-selector">
+  <button class="plant-btn" onclick="setPlant(this,'Suculenta')"><span class="plant-emoji">🪴</span>Suculenta<span class="plant-range">300+ lux</span></button>
+  <button class="plant-btn" onclick="setPlant(this,'Helecho')"><span class="plant-emoji">🌿</span>Helecho<span class="plant-range">200+ lux</span></button>
+  <button class="plant-btn" onclick="setPlant(this,'Cactus')"><span class="plant-emoji">🌵</span>Cactus<span class="plant-range">500+ lux</span></button>
+  <button class="plant-btn" onclick="setPlant(this,'Tomate')"><span class="plant-emoji">🍅</span>Tomate<span class="plant-range">600+ lux</span></button>
+  <button class="plant-btn" onclick="setPlant(this,'Albahaca')"><span class="plant-emoji">🌱</span>Albahaca<span class="plant-range">400+ lux</span></button>
+  <button class="plant-btn active" onclick="setPlant(this,'Generica')"><span class="plant-emoji">🪻</span>Genérica<span class="plant-range">300+ lux</span></button>
+</div>
+
+<div class="actions">
+  <button class="action-btn danger" onclick="triggerBuzzer()">🔔 Beep prueba</button>
+  <button class="action-btn" onclick="readOnce()">🔄 Actualizar</button>
+</div>
+
 <div class="section-title">Consola</div>
 <div id="log"></div>
 
@@ -86,7 +109,7 @@ function log(msg) {
 
 function connectESP() {
   espIP = document.getElementById('esp-ip').value.trim();
-  if (!espIP) { log('Ingresá la IP del ESP32'); return; }
+  if (!espIP) { log('Ingresá la IP'); return; }
   if (pollInterval) clearInterval(pollInterval);
   readOnce();
   pollInterval = setInterval(readOnce, 3000);
@@ -97,25 +120,46 @@ async function readOnce() {
   try {
     const res = await fetch(`http://${espIP}/data`, { signal: AbortSignal.timeout(4000) });
     const d = await res.json();
+    const umbralLuz = d.umbral_luz ?? 300;
     document.getElementById('val-humedad').textContent = d.humedad_pct ?? '--';
     document.getElementById('val-luz').textContent = d.luz_lux ?? '--';
     document.getElementById('bar-humedad').style.width = (d.humedad_pct ?? 0) + '%';
-    document.getElementById('bar-luz').style.width = Math.min(((d.luz_lux ?? 0) / 600) * 100, 100) + '%';
+    document.getElementById('bar-luz').style.width = Math.min(((d.luz_lux ?? 0) / (umbralLuz * 2)) * 100, 100) + '%';
+    document.getElementById('th-humedad').textContent = d.umbral_humedad ? `umbral: raw > ${d.umbral_humedad}` : '';
+    document.getElementById('th-luz').textContent = umbralLuz ? `mínimo: ${umbralLuz} lux` : '';
 
-    const alertA = document.getElementById('alert-agua');
-    const alertL = document.getElementById('alert-luz');
     document.getElementById('card-humedad').className = 'card' + (d.alerta_agua ? ' alert' : '');
     document.getElementById('card-luz').className     = 'card' + (d.alerta_luz  ? ' alert' : '');
 
+    const alertA = document.getElementById('alert-agua');
     alertA.className = d.alerta_agua ? 'alert-item warn' : 'alert-item ok';
     alertA.textContent = d.alerta_agua ? '⚠ Suelo seco — se necesita riego' : '✓ Humedad correcta';
-    alertL.className = d.alerta_luz ? 'alert-item info' : 'alert-item ok';
-    alertL.textContent = d.alerta_luz ? '💡 Poca luz — grow light activo' : '✓ Luz suficiente';
 
-    log(`H: ${d.humedad_pct}% | Luz: ${d.luz_lux} lux | Suelo: ${d.alerta_agua ? '⚠' : '✓'} | Luz: ${d.alerta_luz ? '⚠' : '✓'}`);
-  } catch(e) {
-    log('Error: ' + e.message);
-  }
+    const alertL = document.getElementById('alert-luz');
+    alertL.className = d.alerta_luz ? 'alert-item info' : 'alert-item ok';
+    alertL.textContent = d.alerta_luz ? '💡 Luz insuficiente — grow light activo' : '✓ Luz suficiente';
+
+    log(`H: ${d.humedad_pct}% | Luz: ${d.luz_lux}/${umbralLuz} lux | Suelo:${d.alerta_agua?'⚠':'✓'} Luz:${d.alerta_luz?'⚠':'✓'}`);
+  } catch(e) { log('Error: ' + e.message); }
+}
+
+async function setPlant(btn, name) {
+  document.querySelectorAll('.plant-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (!espIP) { log('Planta: ' + name + ' (sin conexión)'); return; }
+  try {
+    await fetch(`http://${espIP}/plant`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({tipo:name}), signal: AbortSignal.timeout(3000) });
+    log('Planta enviada: ' + name);
+    readOnce();
+  } catch(e) { log('Error: ' + e.message); }
+}
+
+async function triggerBuzzer() {
+  if (!espIP) { log('Conectá primero'); return; }
+  try {
+    await fetch(`http://${espIP}/buzzer`, { method:'POST', signal: AbortSignal.timeout(3000) });
+    log('Buzzer activado');
+  } catch(e) { log('Error: ' + e.message); }
 }
 
 log('App lista. Ingresá la IP del ESP32.');
